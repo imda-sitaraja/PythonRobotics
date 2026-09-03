@@ -1,0 +1,50 @@
+# Sonarcloud Scan
+
+name: Sonarcloud Scan
+
+on:
+  # Run this workflow everyday at 6:05pm Singapore Time (10:05am UTC)
+  schedule:
+    - cron: '5 10 * * *'
+
+  # Run this workflow manually from Actions tab
+  workflow_dispatch:
+
+# Allow one concurrent deployment
+concurrency:
+  group: Sonarcloud
+
+jobs:
+  Sonarcloud:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    permissions:
+      contents: write
+      security-events: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          repository: sitaraja/pythonrobotics
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install Sonarcloud
+        run: |
+          export SONAR_SCANNER_HOME=$HOME/.sonar/sonar-scanner-${{ vars.SONAR_SCANNER_VERSION }}-linux-x64
+          curl --create-dirs -sSLo $HOME/.sonar/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${{ vars.SONAR_SCANNER_VERSION }}-linux-x64.zip
+          unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
+          echo "$SONAR_SCANNER_HOME/bin:$PATH" >> $GITHUB_PATH
+
+      - name: Sonarcloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner \
+            -Dsonar.organization=${{ secrets.SONAR_ORGANISATION }} \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
+            -Dsonar.sources=$GITHUB_WORKSPACE \
+            -Dsonar.python.version=${{ vars.PYTHON_VERSION }}
