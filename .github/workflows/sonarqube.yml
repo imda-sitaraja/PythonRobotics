@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
-          repository: sitaraja/pythonrobotics
+          repository: imda-sitaraja/PythonRobotics
           submodules: recursive
           fetch-depth: 0
 
